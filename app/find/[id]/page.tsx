@@ -1,0 +1,146 @@
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db";
+import AnswerForm from "@/components/AnswerForm";
+
+interface FindPageProps {
+  params: Promise<{ id: string }>;
+}
+
+const verdictLabels: Record<string, { text: string; color: string }> = {
+  keep: { text: "Keep it", color: "bg-blue-100 text-blue-800" },
+  donate: { text: "Donate to museum", color: "bg-green-100 text-green-800" },
+  sell: { text: "Sell it", color: "bg-yellow-100 text-yellow-800" },
+};
+
+const categoryLabels: Record<string, string> = {
+  coins: "Coins & Currency",
+  pottery: "Pottery & Ceramics",
+  tools: "Tools & Implements",
+  jewelry: "Jewelry & Accessories",
+  fossils: "Fossils & Bones",
+  military: "Military Items",
+  other: "Other",
+};
+
+async function getFind(id: number) {
+  const find = await prisma.find.findUnique({
+    where: { id },
+    include: {
+      answers: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+  return find;
+}
+
+export default async function FindPage({ params }: FindPageProps) {
+  const { id } = await params;
+  const find = await getFind(parseInt(id));
+
+  if (!find) {
+    notFound();
+  }
+
+  const images = JSON.parse(find.images) as string[];
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Images */}
+        {images.length > 0 && (
+          <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2">
+              {images.map((img, index) => (
+                <div key={index} className="relative aspect-square">
+                  <Image
+                    src={img}
+                    alt={`${find.title} - Image ${index + 1}`}
+                    fill
+                    className="object-cover rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Find Details */}
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="bg-amber-100 text-amber-800 text-sm px-3 py-1 rounded">
+              {categoryLabels[find.category] || find.category}
+            </span>
+            <span className="text-gray-500 text-sm">
+              Posted by {find.authorName}
+            </span>
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{find.title}</h1>
+
+          <div className="flex items-center text-gray-600 mb-4">
+            <span className="mr-4">Found at: {find.location}</span>
+          </div>
+
+          <div className="prose max-w-none mb-6">
+            <p className="text-gray-700 whitespace-pre-wrap">{find.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Answers Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Community Answers ({find.answers.length})
+        </h2>
+
+        {/* Answer Form */}
+        <div className="mb-6">
+          <AnswerForm findId={find.id} />
+        </div>
+
+        {/* Existing Answers */}
+        {find.answers.length > 0 ? (
+          <div className="space-y-4">
+            {find.answers.map((answer) => (
+              <div
+                key={answer.id}
+                className="bg-white rounded-lg shadow-md p-6"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-medium text-gray-900">
+                    {answer.authorName}
+                  </span>
+                  {answer.verdict && (
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        verdictLabels[answer.verdict]?.color || "bg-gray-100"
+                      }`}
+                    >
+                      {verdictLabels[answer.verdict]?.text || answer.verdict}
+                    </span>
+                  )}
+                </div>
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {answer.content}
+                </p>
+                <div className="mt-3 text-xs text-gray-500">
+                  {new Date(answer.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">
+            No answers yet. Be the first to help identify this find!
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Find {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  location    String
+  category    String
+  authorName  String
+  images      String    // JSON array of image paths
+  createdAt   DateTime  @default(now())
+  answers     Answer[]
+}
+
+model Answer {
+  id          Int      @id @default(autoincrement())
+  content     String
+  authorName  String
+  verdict     String?  // "keep", "donate", "sell", or null
+  findId      Int
+  find        Find     @relation(fields: [findId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
