@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 interface AnswerFormProps {
   findId: number;
@@ -9,6 +11,7 @@ interface AnswerFormProps {
 
 export default function AnswerForm({ findId }: AnswerFormProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,7 +23,6 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
 
     const data = {
       content: formData.get("content"),
-      authorName: formData.get("authorName"),
       verdict: formData.get("verdict") || null,
       findId,
     };
@@ -35,6 +37,8 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
       if (response.ok) {
         form.reset();
         router.refresh();
+      } else if (response.status === 401) {
+        router.push(`/login?callbackUrl=/find/${findId}`);
       } else {
         alert("Failed to submit answer. Please try again.");
       }
@@ -45,25 +49,34 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
     }
   };
 
+  if (status === "loading") {
+    return (
+      <div className="bg-gray-50 rounded-lg p-6">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-6 text-center">
+        <h3 className="font-semibold text-lg mb-2">Want to help identify this find?</h3>
+        <p className="text-gray-600 mb-4">Sign in to share your knowledge with the community.</p>
+        <Link
+          href={`/login?callbackUrl=/find/${findId}`}
+          className="inline-block bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 transition"
+        >
+          Sign In to Answer
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg p-6">
       <h3 className="font-semibold text-lg mb-4">Add Your Answer</h3>
 
       <div className="space-y-4">
-        <div>
-          <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
-            Your Name
-          </label>
-          <input
-            type="text"
-            id="authorName"
-            name="authorName"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
-            placeholder="Your display name"
-          />
-        </div>
-
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Your Answer

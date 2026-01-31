@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import AnswerForm from "@/components/AnswerForm";
+import DeleteButton from "@/components/DeleteButton";
 
 interface FindPageProps {
   params: Promise<{ id: string }>;
@@ -27,8 +29,16 @@ async function getFind(id: number) {
   const find = await prisma.find.findUnique({
     where: { id },
     include: {
+      user: {
+        select: { id: true, name: true, email: true, role: true },
+      },
       answers: {
         orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
       },
     },
   });
@@ -37,13 +47,29 @@ async function getFind(id: number) {
 
 export default async function FindPage({ params }: FindPageProps) {
   const { id } = await params;
-  const find = await getFind(parseInt(id));
+  const [find, session] = await Promise.all([
+    getFind(parseInt(id)),
+    auth(),
+  ]);
 
   if (!find) {
     notFound();
   }
 
   const images = JSON.parse(find.images) as string[];
+  const findAuthor =
+    find.user?.name || find.user?.email || find.authorName || "Anonymous";
+  const isAuthorModerator = find.user?.role === "moderator";
+
+  // Check if current user is moderator
+  let isModerator = false;
+  if (session?.user?.id) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    isModerator = currentUser?.role === "moderator";
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -68,13 +94,23 @@ export default async function FindPage({ params }: FindPageProps) {
 
         {/* Find Details */}
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="bg-amber-100 text-amber-800 text-sm px-3 py-1 rounded">
-              {categoryLabels[find.category] || find.category}
-            </span>
-            <span className="text-gray-500 text-sm">
-              Posted by {find.authorName}
-            </span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="bg-amber-100 text-amber-800 text-sm px-3 py-1 rounded">
+                {categoryLabels[find.category] || find.category}
+              </span>
+              <span className="text-gray-500 text-sm">
+                Posted by {findAuthor}
+                {isAuthorModerator && (
+                  <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
+                    Moderator
+                  </span>
+                )}
+              </span>
+            </div>
+            {isModerator && (
+              <DeleteButton type="find" id={find.id} />
+            )}
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-4">{find.title}</h1>
@@ -84,7 +120,9 @@ export default async function FindPage({ params }: FindPageProps) {
           </div>
 
           <div className="prose max-w-none mb-6">
-            <p className="text-gray-700 whitespace-pre-wrap">{find.description}</p>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {find.description}
+            </p>
           </div>
         </div>
       </div>
@@ -103,37 +141,56 @@ export default async function FindPage({ params }: FindPageProps) {
         {/* Existing Answers */}
         {find.answers.length > 0 ? (
           <div className="space-y-4">
-            {find.answers.map((answer) => (
-              <div
-                key={answer.id}
-                className="bg-white rounded-lg shadow-md p-6"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-gray-900">
-                    {answer.authorName}
-                  </span>
-                  {answer.verdict && (
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        verdictLabels[answer.verdict]?.color || "bg-gray-100"
-                      }`}
-                    >
-                      {verdictLabels[answer.verdict]?.text || answer.verdict}
-                    </span>
-                  )}
+            {find.answers.map((answer) => {
+              const answerAuthor =
+                answer.user?.name ||
+                answer.user?.email ||
+                answer.authorName ||
+                "Anonymous";
+              const isAnswerAuthorModerator = answer.user?.role === "moderator";
+
+              return (
+                <div
+                  key={answer.id}
+                  className="bg-white rounded-lg shadow-md p-6"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">
+                        {answerAuthor}
+                      </span>
+                      {isAnswerAuthorModerator && (
+                        <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
+                          Moderator
+                        </span>
+                      )}
+                      {answer.verdict && (
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            verdictLabels[answer.verdict]?.color || "bg-gray-100"
+                          }`}
+                        >
+                          {verdictLabels[answer.verdict]?.text || answer.verdict}
+                        </span>
+                      )}
+                    </div>
+                    {isModerator && (
+                      <DeleteButton type="answer" id={answer.id} />
+                    )}
+                  </div>
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {answer.content}
+                  </p>
+                  <div className="mt-3 text-xs text-gray-500">
+                    {new Date(answer.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </div>
                 </div>
-                <p className="text-gray-700 whitespace-pre-wrap">
-                  {answer.content}
-                </p>
-                <div className="mt-3 text-xs text-gray-500">
-                  {new Date(answer.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-md p-6 text-center text-gray-500">

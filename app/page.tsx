@@ -12,6 +12,9 @@ async function getFinds(category?: string) {
     where: category && category !== "all" ? { category } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
+      user: {
+        select: { id: true, name: true, email: true },
+      },
       _count: {
         select: { answers: true },
       },
@@ -27,9 +30,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Archaeological Finds Community
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Finds</h1>
         <p className="text-gray-600 mb-6">
           Share your discoveries and help others identify theirs
         </p>
@@ -54,6 +55,7 @@ export default async function Home({ searchParams }: HomeProps) {
               location={find.location}
               category={find.category}
               authorName={find.authorName}
+              user={find.user}
               images={find.images}
               createdAt={find.createdAt.toISOString()}
               _count={find._count}

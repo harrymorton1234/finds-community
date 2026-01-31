@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -16,6 +17,9 @@ export async function GET(request: NextRequest) {
     where: category && category !== "all" ? { category } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
+      user: {
+        select: { id: true, name: true, email: true },
+      },
       _count: {
         select: { answers: true },
       },
@@ -26,13 +30,18 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const formData = await request.formData();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const location = formData.get("location") as string;
   const category = formData.get("category") as string;
-  const authorName = formData.get("authorName") as string;
   const imageFiles = formData.getAll("images") as File[];
 
   const imageUrls: string[] = [];
@@ -61,7 +70,7 @@ export async function POST(request: NextRequest) {
       description,
       location,
       category,
-      authorName,
+      userId: session.user.id,
       images: JSON.stringify(imageUrls),
     },
   });

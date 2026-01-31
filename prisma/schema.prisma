@@ -6,8 +6,19 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("user") // "user" or "moderator"
+  createdAt     DateTime  @default(now())
+  finds         Find[]
+  answers       Answer[]
 }
 
 model Find {
@@ -16,18 +27,22 @@ model Find {
   description String
   location    String
   category    String
-  authorName  String
+  authorName  String?   // Keep for old data, make optional
   images      String    // JSON array of image paths
   createdAt   DateTime  @default(now())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
   answers     Answer[]
 }
 
 model Answer {
   id          Int      @id @default(autoincrement())
   content     String
-  authorName  String
+  authorName  String?  // Keep for old data, make optional
   verdict     String?  // "keep", "donate", "sell", or null
   findId      Int
   find        Find     @relation(fields: [findId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
 }

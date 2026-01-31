@@ -51,6 +51,8 @@ export default function FindForm() {
       if (response.ok) {
         const find = await response.json();
         router.push(`/find/${find.id}`);
+      } else if (response.status === 401) {
+        router.push("/login?callbackUrl=/find/new");
       } else {
         alert("Failed to submit find. Please try again.");
       }
@@ -63,20 +65,6 @@ export default function FindForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
-          Your Name
-        </label>
-        <input
-          type="text"
-          id="authorName"
-          name="authorName"
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
-          placeholder="Enter your display name"
-        />
-      </div>
-
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
           Title

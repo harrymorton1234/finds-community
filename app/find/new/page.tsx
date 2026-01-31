@@ -1,6 +1,14 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import FindForm from "@/components/FindForm";
 
-export default function NewFindPage() {
+export default async function NewFindPage() {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/login?callbackUrl=/find/new");
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md p-6">

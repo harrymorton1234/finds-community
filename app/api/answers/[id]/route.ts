@@ -2,36 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-
-  const find = await prisma.find.findUnique({
-    where: { id: parseInt(id) },
-    include: {
-      user: {
-        select: { id: true, name: true, email: true },
-      },
-      answers: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: { id: true, name: true, email: true },
-          },
-        },
-      },
-    },
-  });
-
-  if (!find) {
-    return NextResponse.json({ error: "Find not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(find);
-}
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -55,7 +25,7 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    await prisma.find.delete({
+    await prisma.answer.delete({
       where: { id: parseInt(id) },
     });
 

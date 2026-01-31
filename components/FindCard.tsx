@@ -7,7 +7,8 @@ interface FindCardProps {
   description: string;
   location: string;
   category: string;
-  authorName: string;
+  authorName?: string | null;
+  user?: { id: string; name: string | null; email: string } | null;
   images: string;
   createdAt: string;
   _count: {
@@ -25,9 +26,20 @@ const categoryColors: Record<string, string> = {
   other: "bg-blue-100 text-blue-800",
 };
 
-export default function FindCard({ id, title, description, location, category, authorName, images, createdAt, _count }: FindCardProps) {
+export default function FindCard({
+  id,
+  title,
+  description,
+  location,
+  category,
+  authorName,
+  user,
+  images,
+  _count,
+}: FindCardProps) {
   const imageArray = JSON.parse(images) as string[];
   const firstImage = imageArray[0];
+  const displayName = user?.name || user?.email || authorName || "Anonymous";
 
   return (
     <Link href={`/find/${id}`}>
@@ -48,7 +60,9 @@ export default function FindCard({ id, title, description, location, category, a
         </div>
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className={`text-xs px-2 py-1 rounded ${categoryColors[category] || categoryColors.other}`}>
+            <span
+              className={`text-xs px-2 py-1 rounded ${categoryColors[category] || categoryColors.other}`}
+            >
               {category}
             </span>
             <span className="text-xs text-gray-500">
@@ -56,10 +70,12 @@ export default function FindCard({ id, title, description, location, category, a
             </span>
           </div>
           <h3 className="font-semibold text-lg mb-1 line-clamp-1">{title}</h3>
-          <p className="text-gray-600 text-sm mb-2 line-clamp-2">{description}</p>
+          <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+            {description}
+          </p>
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>📍 {location}</span>
-            <span>by {authorName}</span>
+            <span>by {displayName}</span>
           </div>
         </div>
       </div>
