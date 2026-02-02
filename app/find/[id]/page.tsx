@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
@@ -61,14 +62,16 @@ export default async function FindPage({ params }: FindPageProps) {
     find.user?.name || find.user?.email || find.authorName || "Anonymous";
   const isAuthorModerator = find.user?.role === "moderator";
 
-  // Check if current user is moderator
+  // Check if current user is owner or moderator
   let isModerator = false;
+  let isOwner = false;
   if (session?.user?.id) {
     const currentUser = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true },
     });
     isModerator = currentUser?.role === "moderator";
+    isOwner = find.userId === session.user.id;
   }
 
   return (
@@ -108,8 +111,18 @@ export default async function FindPage({ params }: FindPageProps) {
                 )}
               </span>
             </div>
-            {isModerator && (
-              <DeleteButton type="find" id={find.id} />
+            {(isOwner || isModerator) && (
+              <div className="flex items-center gap-3">
+                {isOwner && (
+                  <Link
+                    href={`/find/${find.id}/edit`}
+                    className="text-xs text-amber-600 hover:text-amber-800 hover:underline"
+                  >
+                    Edit
+                  </Link>
+                )}
+                <DeleteButton type="find" id={find.id} />
+              </div>
             )}
           </div>
 
