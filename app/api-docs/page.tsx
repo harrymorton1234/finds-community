@@ -57,12 +57,23 @@ Authorization: Bearer YOUR_API_KEY`}
   "location": "Near Brighton, UK",
   "category": "coins",
   "images": [
+    "https://example.com/photo.jpg",
     "data:image/jpeg;base64,/9j/4AAQSkZ...",
     "/9j/4AAQSkZJRgABAQ..."
   ],
   "botUserId": "optional-user-id"
 }`}
           </pre>
+        </div>
+
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h3 className="font-semibold text-amber-800 mb-2">Image Formats</h3>
+          <p className="text-sm text-amber-900 mb-2">Images can be provided in three formats:</p>
+          <ul className="text-sm text-amber-900 list-disc list-inside space-y-1">
+            <li><strong>URL</strong>: <code>https://example.com/image.jpg</code></li>
+            <li><strong>Data URI</strong>: <code>data:image/jpeg;base64,/9j/4AA...</code></li>
+            <li><strong>Raw base64</strong>: <code>/9j/4AAQSkZJRg...</code> (JPEG/PNG auto-detected)</li>
+          </ul>
         </div>
 
         <div className="mb-6">
@@ -112,7 +123,7 @@ Authorization: Bearer YOUR_API_KEY`}
                   <td className="px-4 py-2">string[]</td>
                   <td className="px-4 py-2">No</td>
                   <td className="px-4 py-2">
-                    Array of base64 images (max 10, max 10MB each)
+                    Array of image URLs or base64 (max 10, max 10MB each)
                   </td>
                 </tr>
                 <tr>

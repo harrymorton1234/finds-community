@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     userId = botUserId;
   }
 
-  // Process images (base64)
+  // Process images (base64 or URL)
   const imageUrls: string[] = [];
 
   if (images && Array.isArray(images)) {
@@ -173,39 +173,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    for (const image of images) {
-      if (typeof image !== "string") continue;
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      if (typeof image !== "string" || !image.trim()) continue;
 
       try {
-        // Check if it's a base64 data URI or raw base64
-        let dataUri = image;
-        if (!image.startsWith("data:")) {
-          // Assume it's raw base64, default to JPEG
-          dataUri = `data:image/jpeg;base64,${image}`;
+        let uploadSource: string;
+
+        // Check if it's a URL (http/https)
+        if (image.startsWith("http://") || image.startsWith("https://")) {
+          // Cloudinary can fetch from URLs directly
+          uploadSource = image;
+        } else if (image.startsWith("data:")) {
+          // Already a data URI
+          uploadSource = image;
+        } else {
+          // Assume raw base64 - clean it up and add proper prefix
+          // Remove any whitespace/newlines that might have been added
+          const cleanBase64 = image.replace(/[\s\n\r]/g, "");
+
+          // Detect image type from base64 header if possible
+          let mimeType = "image/jpeg";
+          if (cleanBase64.startsWith("/9j/")) {
+            mimeType = "image/jpeg";
+          } else if (cleanBase64.startsWith("iVBOR")) {
+            mimeType = "image/png";
+          } else if (cleanBase64.startsWith("R0lGO")) {
+            mimeType = "image/gif";
+          } else if (cleanBase64.startsWith("UklGR")) {
+            mimeType = "image/webp";
+          }
+
+          uploadSource = `data:${mimeType};base64,${cleanBase64}`;
         }
 
-        // Validate base64 size (max 10MB)
-        const base64Data = dataUri.split(",")[1] || dataUri;
-        const sizeInBytes = (base64Data.length * 3) / 4;
-        if (sizeInBytes > 10 * 1024 * 1024) {
-          return NextResponse.json(
-            {
-              error: "Validation error",
-              message: "Image size exceeds 10MB limit",
-            },
-            { status: 400 }
-          );
+        // Validate base64 size (max 10MB) - only for base64, not URLs
+        if (uploadSource.startsWith("data:")) {
+          const base64Data = uploadSource.split(",")[1] || "";
+          const sizeInBytes = (base64Data.length * 3) / 4;
+          if (sizeInBytes > 10 * 1024 * 1024) {
+            return NextResponse.json(
+              {
+                error: "Validation error",
+                message: `Image ${i + 1} exceeds 10MB limit`,
+              },
+              { status: 400 }
+            );
+          }
         }
 
-        const result = await cloudinary.uploader.upload(dataUri, {
+        const result = await cloudinary.uploader.upload(uploadSource, {
           folder: "finds-community",
         });
         imageUrls.push(result.secure_url);
       } catch (error) {
-        console.error("Cloudinary upload error:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error(`Cloudinary upload error for image ${i + 1}:`, error);
         return NextResponse.json(
-          { error: "Upload error", message: "Failed to upload image to storage" },
-          { status: 500 }
+          {
+            error: "Upload error",
+            message: `Failed to upload image ${i + 1}: ${errorMessage}`,
+            hint: "Images should be: a URL (https://...), a data URI (data:image/jpeg;base64,...), or raw base64 string"
+          },
+          { status: 400 }
         );
       }
     }
