@@ -23,14 +23,18 @@ interface EditFindFormProps {
     location: string;
     category: string;
     images: string[];
+    userId?: string | null;
   };
+  isModerator?: boolean;
+  allUsers?: { id: string; name: string | null; email: string }[];
 }
 
-export default function EditFindForm({ find }: EditFindFormProps) {
+export default function EditFindForm({ find, isModerator = false, allUsers = [] }: EditFindFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingImages, setExistingImages] = useState<string[]>(find.images);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>(find.userId || "");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -62,6 +66,11 @@ export default function EditFindForm({ find }: EditFindFormProps) {
 
     // Add existing images that weren't removed
     formData.set("existingImages", JSON.stringify(existingImages));
+
+    // Add userId for moderator impersonation
+    if (isModerator) {
+      formData.set("userId", selectedUserId);
+    }
 
     try {
       const response = await fetch(`/api/finds/${find.id}`, {
@@ -149,6 +158,30 @@ export default function EditFindForm({ find }: EditFindFormProps) {
           ))}
         </select>
       </div>
+
+      {isModerator && (
+        <div className="p-4 bg-purple-50 border border-purple-200 rounded-md">
+          <label htmlFor="userId" className="block text-sm font-medium text-purple-800 mb-1">
+            Post As User (Moderator Only)
+          </label>
+          <select
+            id="userId"
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="w-full px-3 py-2 border border-purple-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          >
+            <option value="">-- No user (Anonymous) --</option>
+            {allUsers.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name || user.email} ({user.email})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-purple-600 mt-1">
+            Change who this find appears to be posted by
+          </p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">

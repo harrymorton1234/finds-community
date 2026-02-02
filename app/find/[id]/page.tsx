@@ -15,6 +15,7 @@ const verdictLabels: Record<string, { text: string; color: string }> = {
   keep: { text: "Keep it", color: "bg-blue-100 text-blue-800" },
   donate: { text: "Donate to museum", color: "bg-green-100 text-green-800" },
   sell: { text: "Sell it", color: "bg-yellow-100 text-yellow-800" },
+  throw: { text: "Throw it away", color: "bg-red-100 text-red-800" },
 };
 
 const categoryLabels: Record<string, string> = {
@@ -117,14 +118,12 @@ export default async function FindPage({ params }: FindPageProps) {
             </div>
             {(isOwner || isModerator) && (
               <div className="flex items-center gap-3">
-                {isOwner && (
-                  <Link
-                    href={`/find/${find.id}/edit`}
-                    className="text-xs text-amber-600 hover:text-amber-800 hover:underline"
-                  >
-                    Edit
-                  </Link>
-                )}
+                <Link
+                  href={`/find/${find.id}/edit`}
+                  className="text-xs text-amber-600 hover:text-amber-800 hover:underline"
+                >
+                  Edit
+                </Link>
                 <DeleteButton type="find" id={find.id} />
               </div>
             )}

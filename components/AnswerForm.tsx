@@ -104,6 +104,7 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
             <option value="keep">Keep it - it has personal/sentimental value</option>
             <option value="donate">Donate to museum - historically significant</option>
             <option value="sell">Sell it - has monetary value</option>
+            <option value="throw">Throw it away - not valuable or interesting</option>
           </select>
         </div>
 

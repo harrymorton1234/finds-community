@@ -52,17 +52,26 @@ export async function PUT(
   const { id } = await params;
   const findId = parseInt(id);
 
-  // Get the find and check ownership
-  const find = await prisma.find.findUnique({
-    where: { id: findId },
-    select: { userId: true },
-  });
+  // Get the find and check ownership or moderator status
+  const [find, currentUser] = await Promise.all([
+    prisma.find.findUnique({
+      where: { id: findId },
+      select: { userId: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    }),
+  ]);
 
   if (!find) {
     return NextResponse.json({ error: "Find not found" }, { status: 404 });
   }
 
-  if (find.userId !== session.user.id) {
+  const isOwner = find.userId === session.user.id;
+  const isModerator = currentUser?.role === "moderator";
+
+  if (!isOwner && !isModerator) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -74,6 +83,7 @@ export async function PUT(
   const category = formData.get("category") as string;
   const imageFiles = formData.getAll("images") as File[];
   const existingImages = formData.get("existingImages") as string;
+  const newUserId = formData.get("userId") as string | null;
 
   // Start with existing images
   let imageUrls: string[] = [];
@@ -104,15 +114,39 @@ export async function PUT(
     }
   }
 
+  // Build update data
+  const updateData: {
+    title: string;
+    description: string;
+    location: string;
+    category: string;
+    images: string;
+    userId?: string | null;
+  } = {
+    title,
+    description,
+    location,
+    category,
+    images: JSON.stringify(imageUrls),
+  };
+
+  // Only moderators can change the user (impersonate)
+  if (isModerator && newUserId !== undefined) {
+    // Validate the new user exists if provided
+    if (newUserId && newUserId !== "") {
+      const targetUser = await prisma.user.findUnique({
+        where: { id: newUserId },
+      });
+      if (!targetUser) {
+        return NextResponse.json({ error: "Target user not found" }, { status: 400 });
+      }
+    }
+    updateData.userId = newUserId || null;
+  }
+
   const updatedFind = await prisma.find.update({
     where: { id: findId },
-    data: {
-      title,
-      description,
-      location,
-      category,
-      images: JSON.stringify(imageUrls),
-    },
+    data: updateData,
   });
 
   return NextResponse.json(updatedFind);
