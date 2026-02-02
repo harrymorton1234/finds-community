@@ -189,6 +189,83 @@ Authorization: Bearer YOUR_API_KEY`}
 
       <section className="bg-white rounded-lg shadow-md p-8 mb-8">
         <h2 className="text-2xl font-semibold text-amber-800 mb-4">
+          Get a Find
+        </h2>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Endpoint</h3>
+          <code className="bg-amber-100 px-3 py-1 rounded text-amber-900">
+            GET /api/bot/finds/:id
+          </code>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">
+            Success Response (200)
+          </h3>
+          <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm">
+            {`{
+  "id": 123,
+  "title": "Roman coin found in garden",
+  "description": "Small bronze coin...",
+  "location": "Near Brighton, UK",
+  "category": "coins",
+  "images": ["https://res.cloudinary.com/..."],
+  "createdAt": "2026-02-02T12:00:00.000Z",
+  "user": null,
+  "answerCount": 5
+}`}
+          </pre>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-semibold text-amber-800 mb-4">
+          Delete a Find
+        </h2>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Endpoint</h3>
+          <code className="bg-red-100 px-3 py-1 rounded text-red-900">
+            DELETE /api/bot/finds/:id
+          </code>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Example</h3>
+          <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm">
+            {`curl -X DELETE https://your-domain.com/api/bot/finds/123 \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}
+          </pre>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">
+            Success Response (200)
+          </h3>
+          <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-sm">
+            {`{
+  "success": true,
+  "message": "Find 123 deleted successfully"
+}`}
+          </pre>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-900 mb-2">Error Responses</h3>
+          <div className="space-y-3">
+            <div>
+              <span className="font-mono text-red-600">404 Not Found</span>
+              <pre className="bg-gray-100 p-2 rounded-md text-sm mt-1">
+                {`{"error": "Not found", "message": "Find not found"}`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-semibold text-amber-800 mb-4">
           Example Usage
         </h2>
 
