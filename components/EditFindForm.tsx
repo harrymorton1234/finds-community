@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { getCardImageUrl } from "@/lib/cloudinary";
 
 const categories = [
   { value: "coins", label: "Coins & Currency" },
@@ -159,9 +160,10 @@ export default function EditFindForm({ find }: EditFindFormProps) {
               <div key={index} className="relative">
                 <div className="relative w-24 h-24">
                   <Image
-                    src={img}
+                    src={getCardImageUrl(img)}
                     alt={`Image ${index + 1}`}
                     fill
+                    sizes="96px"
                     className="object-cover rounded"
                   />
                 </div>

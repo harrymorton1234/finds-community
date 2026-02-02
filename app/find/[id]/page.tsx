@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { getDetailImageUrl } from "@/lib/cloudinary";
 import AnswerForm from "@/components/AnswerForm";
 import DeleteButton from "@/components/DeleteButton";
 
@@ -84,10 +85,13 @@ export default async function FindPage({ params }: FindPageProps) {
               {images.map((img, index) => (
                 <div key={index} className="relative aspect-square">
                   <Image
-                    src={img}
+                    src={getDetailImageUrl(img)}
                     alt={`${find.title} - Image ${index + 1}`}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover rounded"
+                    priority={index === 0}
+                    loading={index === 0 ? "eager" : "lazy"}
                   />
                 </div>
               ))}

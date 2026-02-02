@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getCardImageUrl } from "@/lib/cloudinary";
 
 interface FindCardProps {
   id: number;
@@ -47,10 +48,12 @@ export default function FindCard({
         <div className="relative h-48 bg-gray-200">
           {firstImage ? (
             <Image
-              src={firstImage}
+              src={getCardImageUrl(firstImage)}
               alt={title}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
+              loading="lazy"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

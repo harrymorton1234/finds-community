@@ -30,20 +30,35 @@ function checkRateLimit(apiKey: string): boolean {
   return true;
 }
 
-function validateApiKey(request: NextRequest): string | null {
+async function validateApiKey(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return null;
   }
 
   const providedKey = authHeader.slice(7);
-  const validKey = process.env.BOT_API_KEY;
 
-  if (!validKey || providedKey !== validKey) {
-    return null;
+  // Check database for API key
+  const apiKeyRecord = await prisma.apiKey.findUnique({
+    where: { key: providedKey },
+  });
+
+  if (apiKeyRecord && apiKeyRecord.isActive) {
+    // Update last used timestamp
+    await prisma.apiKey.update({
+      where: { id: apiKeyRecord.id },
+      data: { lastUsedAt: new Date() },
+    });
+    return providedKey;
   }
 
-  return providedKey;
+  // Fallback to env var for backwards compatibility
+  const envKey = process.env.BOT_API_KEY;
+  if (envKey && providedKey === envKey) {
+    return providedKey;
+  }
+
+  return null;
 }
 
 const VALID_CATEGORIES = [
@@ -58,7 +73,7 @@ const VALID_CATEGORIES = [
 
 export async function POST(request: NextRequest) {
   // Validate API key
-  const apiKey = validateApiKey(request);
+  const apiKey = await validateApiKey(request);
   if (!apiKey) {
     return NextResponse.json(
       { error: "Unauthorized", message: "Invalid or missing API key" },
