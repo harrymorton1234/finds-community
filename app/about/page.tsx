@@ -28,8 +28,8 @@ export default function AboutPage() {
         </h2>
         <p className="text-gray-700 leading-relaxed mb-4">
           Our community brings together hobbyists, historians, archaeologists,
-          and curious minds from all walks of life. Together, we've helped
-          identify thousands of finds, from Roman coins to medieval artifacts,
+          and curious minds from all walks of life. Together, we can discover
+          thousands of finds, from Roman coins to medieval artifacts,
           Victorian curiosities to prehistoric tools.
         </p>
         <div className="grid md:grid-cols-3 gap-6 mt-6">

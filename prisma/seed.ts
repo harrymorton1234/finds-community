@@ -10,10 +10,11 @@ async function main() {
   const moderator = await prisma.user.upsert({
     where: { email: "morton_h1@icloud.com" },
     update: {
+      name: "Harry Morton",
       role: "moderator",
     },
     create: {
-      name: "Harry",
+      name: "Harry Morton",
       email: "morton_h1@icloud.com",
       passwordHash,
       role: "moderator",
