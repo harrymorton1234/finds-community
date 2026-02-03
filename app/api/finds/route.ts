@@ -36,6 +36,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
   const formData = await request.formData();
 
   const title = formData.get("title") as string;
@@ -43,6 +48,7 @@ export async function POST(request: NextRequest) {
   const location = formData.get("location") as string;
   const category = formData.get("category") as string;
   const imageFiles = formData.getAll("images") as File[];
+  const authorName = formData.get("authorName") as string | null;
 
   const imageUrls: string[] = [];
 
@@ -72,6 +78,7 @@ export async function POST(request: NextRequest) {
       category,
       userId: session.user.id,
       images: JSON.stringify(imageUrls),
+      authorName: user?.role === "moderator" && authorName ? authorName : null,
     },
   });
 

@@ -13,6 +13,7 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isModerator = session?.user?.role === "moderator";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,6 +26,7 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
       content: formData.get("content"),
       verdict: formData.get("verdict") || null,
       findId,
+      authorName: formData.get("authorName") || null,
     };
 
     try {
@@ -77,6 +79,21 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
       <h3 className="font-semibold text-lg mb-4">Add Your Answer</h3>
 
       <div className="space-y-4">
+        {isModerator && (
+          <div>
+            <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
+              Post as (Moderator Only)
+            </label>
+            <input
+              type="text"
+              id="authorName"
+              name="authorName"
+              className="w-full px-3 py-2 border border-amber-300 bg-amber-50 rounded-md focus:ring-amber-500 focus:border-amber-500"
+              placeholder="Leave empty to post as yourself"
+            />
+          </div>
+        )}
+
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Your Answer

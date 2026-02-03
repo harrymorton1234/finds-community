@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const categories = [
   { value: "coins", label: "Coins & Currency" },
@@ -15,8 +16,10 @@ const categories = [
 
 export default function FindForm() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
+  const isModerator = session?.user?.role === "moderator";
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -65,6 +68,21 @@ export default function FindForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {isModerator && (
+        <div>
+          <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
+            Post as (Moderator Only)
+          </label>
+          <input
+            type="text"
+            id="authorName"
+            name="authorName"
+            className="w-full px-3 py-2 border border-amber-300 bg-amber-50 rounded-md focus:ring-amber-500 focus:border-amber-500"
+            placeholder="Leave empty to post as yourself"
+          />
+        </div>
+      )}
+
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
           Title

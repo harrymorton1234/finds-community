@@ -9,8 +9,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
   const body = await request.json();
-  const { content, verdict, findId } = body;
+  const { content, verdict, findId, authorName } = body;
 
   const answer = await prisma.answer.create({
     data: {
@@ -18,6 +23,7 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       verdict: verdict || null,
       findId: parseInt(findId),
+      authorName: user?.role === "moderator" && authorName ? authorName : null,
     },
   });
 
