@@ -40,7 +40,7 @@ export default function FindCard({
 }: FindCardProps) {
   const imageArray = JSON.parse(images) as string[];
   const firstImage = imageArray[0];
-  const displayName = user?.name || user?.email || authorName || "Anonymous";
+  const displayName = authorName || user?.name || user?.email || "Anonymous";
 
   return (
     <Link href={`/find/${id}`}>

@@ -61,8 +61,8 @@ export default async function FindPage({ params }: FindPageProps) {
 
   const images = JSON.parse(find.images) as string[];
   const findAuthor =
-    find.user?.name || find.user?.email || find.authorName || "Anonymous";
-  const isAuthorModerator = find.user?.role === "moderator";
+    find.authorName || find.user?.name || find.user?.email || "Anonymous";
+  const isAuthorModerator = !find.authorName && find.user?.role === "moderator";
 
   // Check if current user is owner or moderator
   let isModerator = false;
@@ -159,11 +159,11 @@ export default async function FindPage({ params }: FindPageProps) {
           <div className="space-y-4">
             {find.answers.map((answer) => {
               const answerAuthor =
+                answer.authorName ||
                 answer.user?.name ||
                 answer.user?.email ||
-                answer.authorName ||
                 "Anonymous";
-              const isAnswerAuthorModerator = answer.user?.role === "moderator";
+              const isAnswerAuthorModerator = !answer.authorName && answer.user?.role === "moderator";
 
               return (
                 <div
