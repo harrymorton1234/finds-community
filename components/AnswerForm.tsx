@@ -13,7 +13,7 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isModerator = session?.user?.role === "moderator";
+  const canImpersonate = session?.user?.role === "moderator" || session?.user?.role === "dev";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,7 +79,7 @@ export default function AnswerForm({ findId }: AnswerFormProps) {
       <h3 className="font-semibold text-lg mb-4">Add Your Answer</h3>
 
       <div className="space-y-4">
-        {isModerator && (
+        {canImpersonate && (
           <div>
             <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
               Post as (Moderator Only)

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       userId: session.user.id,
       verdict: verdict || null,
       findId: parseInt(findId),
-      authorName: user?.role === "moderator" && authorName ? authorName : null,
+      authorName: (user?.role === "moderator" || user?.role === "dev") && authorName ? authorName : null,
     },
   });
 

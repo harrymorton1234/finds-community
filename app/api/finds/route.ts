@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       category,
       userId: session.user.id,
       images: JSON.stringify(imageUrls),
-      authorName: user?.role === "moderator" && authorName ? authorName : null,
+      authorName: (user?.role === "moderator" || user?.role === "dev") && authorName ? authorName : null,
     },
   });
 

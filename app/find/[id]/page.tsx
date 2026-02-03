@@ -63,6 +63,7 @@ export default async function FindPage({ params }: FindPageProps) {
   const findAuthor =
     find.authorName || find.user?.name || find.user?.email || "Anonymous";
   const isAuthorModerator = !find.authorName && find.user?.role === "moderator";
+  const isAuthorDev = !find.authorName && find.user?.role === "dev";
 
   // Check if current user is owner or moderator
   let isModerator = false;
@@ -112,6 +113,11 @@ export default async function FindPage({ params }: FindPageProps) {
                 {isAuthorModerator && (
                   <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
                     Moderator
+                  </span>
+                )}
+                {isAuthorDev && (
+                  <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
+                    Dev
                   </span>
                 )}
               </span>
@@ -164,6 +170,7 @@ export default async function FindPage({ params }: FindPageProps) {
                 answer.user?.email ||
                 "Anonymous";
               const isAnswerAuthorModerator = !answer.authorName && answer.user?.role === "moderator";
+              const isAnswerAuthorDev = !answer.authorName && answer.user?.role === "dev";
 
               return (
                 <div
@@ -178,6 +185,11 @@ export default async function FindPage({ params }: FindPageProps) {
                       {isAnswerAuthorModerator && (
                         <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
                           Moderator
+                        </span>
+                      )}
+                      {isAnswerAuthorDev && (
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
+                          Dev
                         </span>
                       )}
                       {answer.verdict && (

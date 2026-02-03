@@ -19,7 +19,7 @@ export default function FindForm() {
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
-  const isModerator = session?.user?.role === "moderator";
+  const canImpersonate = session?.user?.role === "moderator" || session?.user?.role === "dev";
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -68,7 +68,7 @@ export default function FindForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {isModerator && (
+      {canImpersonate && (
         <div>
           <label htmlFor="authorName" className="block text-sm font-medium text-gray-700 mb-1">
             Post as (Moderator Only)
